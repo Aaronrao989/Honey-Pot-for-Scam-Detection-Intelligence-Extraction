@@ -8,11 +8,19 @@ def send_final_result(payload: dict) -> bool:
     Returns True if successful.
     """
     try:
+        print("\n========== GUVI CALLBACK TRIGGERED ==========")
+        print("Payload being sent to GUVI:")
+        print(payload)
+
         response = requests.post(
             settings.GUVI_CALLBACK_URL,
             json=payload,
             timeout=settings.CALLBACK_TIMEOUT_SECONDS,
         )
+
+        print("GUVI Response Status:", response.status_code)
+        print("GUVI Response Text:", response.text)
+        print("=============================================\n")
 
         return response.status_code == 200
 
