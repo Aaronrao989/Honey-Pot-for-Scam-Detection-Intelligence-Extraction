@@ -69,7 +69,6 @@ An **intelligent, stateful honeypot API** that doesn't just detect scams—it en
 </td>
 </tr>
 </table>
-
 ---
 
 ## 🏗️ System Architecture
