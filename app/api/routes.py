@@ -14,10 +14,13 @@ async def honeypot_endpoint(
     if x_api_key != settings.API_KEY:
         raise HTTPException(status_code=401, detail="Invalid API Key")
 
-    body = await request.json()
+    # -------- Safely read JSON (prevents 500 errors) --------
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
 
-    # -------- GUVI Tester sends minimal ping --------
-    # If this is not the real honeypot payload, respond safely
+    # -------- GUVI tester / bots / empty requests --------
     if "sessionId" not in body or "message" not in body:
         return {
             "status": "success",
@@ -33,7 +36,7 @@ async def honeypot_endpoint(
                 "phoneNumbers": [],
                 "suspiciousKeywords": []
             },
-            "agentNotes": "GUVI tester ping received"
+            "agentNotes": "Non-standard request handled safely"
         }
 
     # -------- Real honeypot processing --------
