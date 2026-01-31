@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Header, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request
 from app.services.conversation_manager import process_message
 from app.config import settings
 
@@ -6,12 +6,16 @@ router = APIRouter()
 
 
 @router.post("/honeypot")
-async def honeypot_endpoint(
-    request: Request,
-    x_api_key: str = Header(...)
-):
-    # -------- API Key Validation --------
-    if x_api_key != settings.API_KEY:
+async def honeypot_endpoint(request: Request):
+
+    # -------- Flexible API Key Reading --------
+    api_key = (
+        request.headers.get("x-api-key")
+        or request.headers.get("X-API-KEY")
+        or request.headers.get("x_api_key")
+    )
+
+    if api_key != settings.API_KEY:
         raise HTTPException(status_code=401, detail="Invalid API Key")
 
     # -------- Safely read JSON (prevents 500 errors) --------
