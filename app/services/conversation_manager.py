@@ -31,23 +31,26 @@ def process_message(request_data: dict) -> dict:
             session["scam_detected"] = True
             add_agent_note(session_id, "Scam intent detected")
 
-    # ------------------ If Scam Detected, Engage Agent ------------------
-    agent_reply = ""
-    if session["scam_detected"]:
-        # Extract intelligence from scammer message
-        intel = extract_intelligence(incoming_msg["text"])
+    # ------------------ Agent Engagement ------------------
+    agent_reply = "Okay, can you explain more?"
 
+    if session["scam_detected"]:
+        # Extract intelligence
+        intel = extract_intelligence(incoming_msg["text"])
         for key, values in intel.items():
             if values:
                 add_intelligence(session_id, key, values)
 
         # Decide strategy
-        strategy = decide_strategy(session["messages"], session["extracted_intelligence"])
+        strategy = decide_strategy(
+            session["messages"],
+            session["extracted_intelligence"]
+        )
 
-        # Generate agent reply
+        # Generate reply
         agent_reply = generate_reply(strategy, session["messages"])
 
-        # Save agent reply as user message in memory
+        # Save reply into memory
         append_message(session_id, {
             "sender": "user",
             "text": agent_reply,
@@ -56,11 +59,11 @@ def process_message(request_data: dict) -> dict:
 
         add_agent_note(session_id, f"Strategy used: {strategy}")
 
-    # ------------------ Prepare Metrics ------------------
+    # ------------------ Metrics ------------------
     duration = int((datetime.utcnow() - session["start_time"]).total_seconds())
     total_msgs = session["total_messages"]
 
-    # ------------------ Check Callback Condition ------------------
+    # ------------------ Callback Condition ------------------
     intel_store = session["extracted_intelligence"]
     total_intel_items = sum(len(v) for v in intel_store.values())
 
@@ -85,18 +88,8 @@ def process_message(request_data: dict) -> dict:
             session["callback_sent"] = True
             add_agent_note(session_id, "GUVI callback sent successfully")
 
-    # ------------------ Build API Response ------------------
-    response = {
+    # ------------------ FINAL API RESPONSE (Evaluator expects this) ------------------
+    return {
         "status": "success",
-        "scamDetected": session["scam_detected"],
-        "engagementMetrics": {
-            "engagementDurationSeconds": duration,
-            "totalMessagesExchanged": total_msgs,
-        },
-        "extractedIntelligence": {
-            k: list(v) for k, v in intel_store.items()
-        },
-        "agentNotes": " | ".join(session["agent_notes"]),
+        "reply": agent_reply
     }
-
-    return response
