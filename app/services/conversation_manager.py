@@ -18,6 +18,13 @@ def process_message(request_data: dict) -> dict:
     session_id = request_data["sessionId"]
     incoming_msg = request_data["message"]
 
+    # -------- Normalize timestamp (GUVI sends epoch milliseconds) --------
+    ts = incoming_msg.get("timestamp")
+    if isinstance(ts, int):
+        incoming_msg["timestamp"] = datetime.utcfromtimestamp(ts / 1000).isoformat()
+    elif ts is None:
+        incoming_msg["timestamp"] = datetime.utcnow().isoformat()
+
     # ------------------ Load Session ------------------
     session = get_session(session_id)
 
@@ -59,12 +66,9 @@ def process_message(request_data: dict) -> dict:
 
         add_agent_note(session_id, f"Strategy used: {strategy}")
 
-    # ------------------ Metrics ------------------
-    duration = int((datetime.utcnow() - session["start_time"]).total_seconds())
-    total_msgs = session["total_messages"]
-
     # ------------------ Callback Condition ------------------
     intel_store = session["extracted_intelligence"]
+    total_msgs = session["total_messages"]
     total_intel_items = sum(len(v) for v in intel_store.values())
 
     if (
