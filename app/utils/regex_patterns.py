@@ -5,15 +5,16 @@ UPI_PATTERN = re.compile(
     r'\b[a-zA-Z0-9.\-_]{2,}@[a-zA-Z]{2,}\b'
 )
 
-# ------------------ Bank Account Numbers ------------------
-# 9 to 18 digit sequences
-BANK_ACCOUNT_PATTERN = re.compile(
-    r'\b\d{9,18}\b'
+# ------------------ Phone Numbers (Indian) ------------------
+# IMPORTANT: non-capturing group (?: ) so full number is returned
+PHONE_PATTERN = re.compile(
+    r'(?:\+91[\-\s]?)?[6-9]\d{9}\b'
 )
 
-# ------------------ Phone Numbers (Indian + generic) ------------------
-PHONE_PATTERN = re.compile(
-    r'(\+91[\-\s]?)?[6-9]\d{9}\b'
+# ------------------ Bank Account Numbers ------------------
+# 9 to 18 digit sequences (after phones are removed from text)
+BANK_ACCOUNT_PATTERN = re.compile(
+    r'\b\d{9,18}\b'
 )
 
 # ------------------ URLs / Phishing Links ------------------
