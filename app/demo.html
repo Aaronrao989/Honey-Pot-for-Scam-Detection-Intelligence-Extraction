@@ -4,61 +4,39 @@
     <title>Agentic HoneyPot Demo</title>
     <meta charset="UTF-8" />
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f2f2f2;
-        }
+        body { font-family: Arial; background:#f2f2f2; }
+        #wrapper { display:flex; gap:20px; justify-content:center; }
         #chat {
-            width: 520px;
-            height: 620px;
-            margin: 20px auto;
-            background: white;
-            border-radius: 10px;
-            padding: 10px;
-            overflow-y: auto;
-            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            width: 500px; height: 620px;
+            background: white; border-radius:10px;
+            padding:10px; overflow-y:auto;
+            box-shadow:0 0 10px rgba(0,0,0,0.2);
         }
-        .msg {
-            margin: 8px;
-            padding: 10px 14px;
-            border-radius: 12px;
-            max-width: 70%;
-            line-height: 1.4;
+        #debug {
+            width:420px; height:620px;
+            background:white; border-radius:10px;
+            padding:10px; overflow:auto;
+            box-shadow:0 0 10px rgba(0,0,0,0.2);
         }
-        .scammer {
-            background: #ffe6e6;
-            text-align: left;
-        }
-        .agent {
-            background: #e6ffe6;
-            margin-left: auto;
-            text-align: right;
-        }
-        #inputArea {
-            width: 520px;
-            margin: auto;
-            display: flex;
-            gap: 6px;
-        }
-        input {
-            flex: 1;
-            padding: 10px;
-            font-size: 14px;
-        }
-        button {
-            padding: 10px 14px;
-            cursor: pointer;
-        }
-        h2 {
-            text-align: center;
-        }
+        .msg { margin:8px; padding:10px 14px; border-radius:12px; max-width:70%; }
+        .scammer { background:#ffe6e6; }
+        .agent { background:#e6ffe6; margin-left:auto; text-align:right; }
+        #inputArea { width:940px; margin:20px auto; display:flex; gap:6px; }
+        input { flex:1; padding:10px; }
+        button { padding:10px 14px; }
     </style>
 </head>
 <body>
 
-<h2>Agentic Honey-Pot Live Demo</h2>
+<h2 style="text-align:center;">Agentic Honey-Pot Live Demo</h2>
 
-<div id="chat"></div>
+<div id="wrapper">
+    <div id="chat"></div>
+    <div id="debug">
+        <h3>Extracted Intelligence</h3>
+        <pre id="debugContent">{}</pre>
+    </div>
+</div>
 
 <div id="inputArea">
     <input id="messageInput" placeholder="Type scam message..." />
@@ -101,20 +79,19 @@ async function sendMessage() {
         }
     };
 
-    try {
-        const response = await fetch(apiUrl, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
-        });
+    const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    });
 
-        const data = await response.json();
-        addMessage(data.reply || "No reply", "agent");
-    } catch (err) {
-        addMessage("Error connecting to API", "agent");
-        console.error(err);
+    const data = await response.json();
+
+    addMessage(data.reply || "No reply", "agent");
+
+    if (data.debug) {
+        document.getElementById("debugContent").innerText =
+            JSON.stringify(data.debug, null, 2);
     }
 }
 </script>
