@@ -29,8 +29,24 @@ async def honeypot_endpoint(
             "reply": "Okay, can you explain more?"
         }
 
-    # -------- Real honeypot processing --------
-    return process_message(body)
+    # -------- Run honeypot logic --------
+    response = process_message(body)
+
+    # -------- Fetch session for full intelligence --------
+    session = get_session(body["sessionId"])
+
+    return {
+        "status": "success",
+        "reply": response["reply"],
+
+        # 👇 Visible to GUVI tester & judges
+        "scamDetected": session["scam_detected"],
+        "totalMessagesExchanged": session["total_messages"],
+        "extractedIntelligence": {
+            k: list(v) for k, v in session["extracted_intelligence"].items()
+        },
+        "agentNotes": " | ".join(session["agent_notes"])
+    }
 
 
 # ------------------- DEMO FRONTEND ROUTE -------------------
