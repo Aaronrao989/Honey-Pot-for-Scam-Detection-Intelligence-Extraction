@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Honeypot Analytics Dashboard</title>
+    <style>
+        body { font-family: Arial; background:#f2f2f2; padding:20px; }
+        h2 { text-align:center; }
+        .card {
+            background:white;
+            padding:15px;
+            margin:10px auto;
+            width:800px;
+            border-radius:10px;
+            box-shadow:0 0 10px rgba(0,0,0,0.2);
+        }
+        table {
+            width:100%;
+            border-collapse:collapse;
+        }
+        th, td {
+            border:1px solid #ccc;
+            padding:8px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Agentic Honeypot – Analytics</h2>
+
+<div class="card" id="stats"></div>
+<div class="card" id="recent"></div>
+
+<script>
+const API_BASE = "https://honey-pot-for-scam-detection.onrender.com/admin";
+
+async function loadStats() {
+    const res = await fetch(`${API_BASE}/stats`);
+    const data = await res.json();
+
+    document.getElementById("stats").innerHTML = `
+        <h3>Overview</h3>
+        <p><b>Total Conversations:</b> ${data.totalConversations}</p>
+        <p><b>Scam Conversations:</b> ${data.scamConversations}</p>
+        <p><b>Non-Scam Conversations:</b> ${data.nonScamConversations}</p>
+
+        <h4>Top UPI IDs</h4>
+        <pre>${JSON.stringify(data.topUpiIds, null, 2)}</pre>
+
+        <h4>Top Phone Numbers</h4>
+        <pre>${JSON.stringify(data.topPhoneNumbers, null, 2)}</pre>
+
+        <h4>Top Keywords</h4>
+        <pre>${JSON.stringify(data.topKeywords, null, 2)}</pre>
+    `;
+}
+
+async function loadRecent() {
+    const res = await fetch(`${API_BASE}/recent`);
+    const data = await res.json();
+
+    let html = "<h3>Recent Conversations</h3><table><tr><th>Session</th><th>Scam</th><th>Messages</th></tr>";
+
+    data.forEach(c => {
+        html += `
+            <tr>
+                <td>${c.sessionId}</td>
+                <td>${c.scamDetected}</td>
+                <td>${c.totalMessages}</td>
+            </tr>`;
+    });
+
+    html += "</table>";
+    document.getElementById("recent").innerHTML = html;
+}
+
+loadStats();
+loadRecent();
+</script>
+
+</body>
+</html>

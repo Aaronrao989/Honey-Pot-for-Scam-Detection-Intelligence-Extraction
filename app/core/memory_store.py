@@ -1,7 +1,6 @@
 from typing import Dict, Any
 from datetime import datetime
 
-
 # In-memory store (perfect for hackathon)
 SESSION_STORE: Dict[str, Dict[str, Any]] = {}
 
@@ -54,4 +53,17 @@ def add_intelligence(session_id: str, intel_type: str, values) -> None:
 
 
 def add_agent_note(session_id: str, note: str) -> None:
+    """
+    Add internal agent reasoning note.
+    """
     SESSION_STORE[session_id]["agent_notes"].append(note)
+
+
+# ================== NEW FUNCTION ==================
+def delete_session(session_id: str) -> None:
+    """
+    Completely remove a session from memory.
+    Called when user clicks 'End Chat'.
+    """
+    if session_id in SESSION_STORE:
+        del SESSION_STORE[session_id]
