@@ -5,14 +5,16 @@ UPI_PATTERN = re.compile(
     r'\b[a-zA-Z0-9.\-_]{2,}@[a-zA-Z]{2,}\b'
 )
 
-# ------------------ Phone Numbers (STRICT: must start with +91) ------------------
+# ------------------ Phone Numbers ------------------
+# Exactly 10 digits, MUST start with +91
 PHONE_PATTERN = re.compile(
     r'\+91[\-\s]?\d{10}\b'
 )
 
 # ------------------ Bank Account Numbers ------------------
+# Any numeric string with MORE than 12 digits (13–18)
 BANK_ACCOUNT_PATTERN = re.compile(
-    r'(?<!\d)\d{9,18}(?!\d)'
+    r'(?<!\d)\d{13,18}(?!\d)'
 )
 
 # ------------------ URLs / Phishing Links ------------------
