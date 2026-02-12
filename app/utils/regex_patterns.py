@@ -5,19 +5,19 @@ UPI_PATTERN = re.compile(
     r'\b[a-zA-Z0-9.\-_]{2,}@[a-zA-Z]{2,}\b'
 )
 
-# ------------------ Phone Numbers (Indian) ------------------
+# ------------------ Phone Numbers (STRICT: must start with +91) ------------------
 PHONE_PATTERN = re.compile(
-    r'(?:\+91[\-\s]?)?[6-9]\d{9}\b'
+    r'\+91[\-\s]?\d{10}\b'
 )
 
-# ------------------ Bank Account Numbers (FIXED) ------------------
+# ------------------ Bank Account Numbers ------------------
 BANK_ACCOUNT_PATTERN = re.compile(
     r'(?<!\d)\d{9,18}(?!\d)'
 )
 
 # ------------------ URLs / Phishing Links ------------------
 URL_PATTERN = re.compile(
-    r'(https?://[^\s]+)'
+    r'https?://[^\s]+'
 )
 
 # ------------------ Suspicious Scam Keywords ------------------
