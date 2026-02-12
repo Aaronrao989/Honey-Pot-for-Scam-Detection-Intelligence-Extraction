@@ -15,10 +15,8 @@ def extract_intelligence(text: str) -> Dict[str, List[str]]:
     Handles phone/bank overlap and real-world punctuation issues.
     """
 
-    # ---- 0) Normalize punctuation that breaks regex boundaries ----
-    # Converts: 1234567890123456.  -> 1234567890123456
-    text = re.sub(r'[^\w@\-\s:/\.]', ' ', text)
-
+    # ✅ Preserve + so phone numbers are not broken
+    text = re.sub(r'[^\w@\+\-\s:/\.]', ' ', text)
     text_lower = text.lower()
 
     # ---- 1) Extract phone numbers FIRST ----
