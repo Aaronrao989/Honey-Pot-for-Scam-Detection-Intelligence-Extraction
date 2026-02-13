@@ -384,6 +384,18 @@ This project demonstrates:
 
 ---
 
+## 🤝 Contributors
+
+We would like to thank the following people for contributing to this project:
+
+### 👨‍💻 Contributor
+- **Aaron Rao**
+- **Aditi Karn**
+- **Abhinand Meethele Valappil**
+- **Shreyansh Arora**
+
+---
+
 <div align="center">
 
 ### 🚀 Designed to Meet and Exceed Agentic Honey-Pot Challenge Expectations
