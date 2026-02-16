@@ -18,14 +18,14 @@ def process_message(request_data: dict) -> dict:
     session_id = request_data["sessionId"]
     incoming_msg = request_data["message"]
 
-    # -------- Normalize timestamp (GUVI sends epoch milliseconds) --------
+    # ------------------ Normalize timestamp ------------------
     ts = incoming_msg.get("timestamp")
-    if isinstance(ts, int):
+    if isinstance(ts, int):  # epoch milliseconds (GUVI)
         incoming_msg["timestamp"] = datetime.utcfromtimestamp(ts / 1000).isoformat()
     elif ts is None:
         incoming_msg["timestamp"] = datetime.utcnow().isoformat()
 
-    # ------------------ Load Session ------------------
+    # ------------------ Load / Create Session ------------------
     session = get_session(session_id)
 
     # Save incoming scammer message
@@ -42,31 +42,34 @@ def process_message(request_data: dict) -> dict:
     agent_reply = "Okay, can you explain more?"
 
     if session["scam_detected"]:
-        # Extract intelligence
+        # ---- Extract intelligence ----
         intel = extract_intelligence(incoming_msg["text"])
         for key, values in intel.items():
             if values:
                 add_intelligence(session_id, key, values)
 
-        # Decide strategy
+        # ---- Decide engagement strategy ----
         strategy = decide_strategy(
             session["messages"],
             session["extracted_intelligence"]
         )
 
-        # Generate reply
+        # ---- Generate human-like reply ----
         agent_reply = generate_reply(strategy, session["messages"])
 
-        # Save reply into memory
-        append_message(session_id, {
-            "sender": "user",
-            "text": agent_reply,
-            "timestamp": datetime.utcnow().isoformat()
-        })
+        # Save agent reply as user message
+        append_message(
+            session_id,
+            {
+                "sender": "user",
+                "text": agent_reply,
+                "timestamp": datetime.utcnow().isoformat(),
+            },
+        )
 
         add_agent_note(session_id, f"Strategy used: {strategy}")
 
-    # ------------------ Callback Condition ------------------
+    # ------------------ GUVI Callback Logic ------------------
     intel_store = session["extracted_intelligence"]
     total_msgs = session["total_messages"]
     total_intel_items = sum(len(v) for v in intel_store.values())
@@ -92,7 +95,8 @@ def process_message(request_data: dict) -> dict:
             session["callback_sent"] = True
             add_agent_note(session_id, "GUVI callback sent successfully")
 
-    # ------------------ FINAL API RESPONSE (Evaluator expects this) ------------------
+    # ------------------ FINAL API RESPONSE ------------------
+    # IMPORTANT: evaluator expects only status + reply
     return {
         "status": "success",
         "reply": agent_reply
