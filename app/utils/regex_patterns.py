@@ -38,5 +38,6 @@ SUSPICIOUS_KEYWORDS = [
     "lottery",
     "refund",
     "kyc",
+    "immediately",
     "update kyc"
 ]
