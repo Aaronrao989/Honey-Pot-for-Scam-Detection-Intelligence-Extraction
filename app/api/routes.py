@@ -1,4 +1,6 @@
 from fastapi import APIRouter, Header, HTTPException, Request
+from datetime import datetime
+
 from app.services.conversation_manager import process_message
 from app.core.memory_store import get_session, delete_session
 from app.db.mongo_repository import save_conversation
@@ -36,16 +38,29 @@ async def honeypot_endpoint(
     response = process_message(body)
     session = get_session(body["sessionId"])
 
+    # ---- Engagement metrics (CRITICAL FOR SCORING) ----
+    engagement_duration = int(
+        (datetime.utcnow() - session["start_time"]).total_seconds()
+    )
+
     return {
         "status": "success",
         "reply": response["reply"],
 
-        # Extra fields are SAFE (GUVI ignores them)
+        # ===== SCORING FIELDS =====
         "scamDetected": session["scam_detected"],
         "totalMessagesExchanged": session["total_messages"],
         "extractedIntelligence": {
             k: list(v) for k, v in session["extracted_intelligence"].items()
         },
+
+        # ===== ENGAGEMENT QUALITY (20/20) =====
+        "engagementMetrics": {
+            "engagementDurationSeconds": engagement_duration,
+            "totalMessagesExchanged": session["total_messages"],
+        },
+
+        # ===== OPTIONAL BUT SCORED =====
         "agentNotes": " | ".join(session["agent_notes"]),
     }
 
@@ -71,6 +86,10 @@ async def demo_chat(request: Request):
     response = process_message(body)
     session = get_session(body["sessionId"])
 
+    engagement_duration = int(
+        (datetime.utcnow() - session["start_time"]).total_seconds()
+    )
+
     return {
         "status": "success",
         "reply": response["reply"],
@@ -80,13 +99,17 @@ async def demo_chat(request: Request):
             "extractedIntelligence": {
                 k: list(v) for k, v in session["extracted_intelligence"].items()
             },
+            "engagementMetrics": {
+                "engagementDurationSeconds": engagement_duration,
+                "totalMessagesExchanged": session["total_messages"],
+            },
             "agentNotes": " | ".join(session["agent_notes"]),
         },
     }
 
 
 # ==========================================================
-# END CHAT – SAVE & RESET SESSION (NEW FEATURE)
+# END CHAT – SAVE & RESET SESSION
 # ==========================================================
 @router.post("/end-chat")
 async def end_chat(request: Request):
@@ -99,15 +122,8 @@ async def end_chat(request: Request):
     if not session_id:
         raise HTTPException(status_code=400, detail="sessionId required")
 
-    # If session already ended or never existed
-    try:
-        session = get_session(session_id)
-    except Exception:
-        return {
-            "status": "ended",
-            "sessionId": session_id,
-            "message": "Session already closed"
-        }
+    # Fetch session
+    session = get_session(session_id)
 
     # ---- Persist to MongoDB ----
     try:
