@@ -81,6 +81,25 @@ def add_agent_note(session_id: str, note: str) -> None:
 
 
 # ============================================================
+# Engagement Metrics (NEW – REQUIRED FOR SCORING)
+# ============================================================
+
+def get_engagement_duration_seconds(session_id: str) -> int:
+    """
+    Returns total engagement duration in seconds.
+    Used for evaluator scoring.
+    """
+    if session_id not in SESSION_STORE:
+        return 0
+
+    start_time = SESSION_STORE[session_id].get("start_time")
+    if not start_time:
+        return 0
+
+    return int((datetime.utcnow() - start_time).total_seconds())
+
+
+# ============================================================
 # Session lifecycle control
 # ============================================================
 

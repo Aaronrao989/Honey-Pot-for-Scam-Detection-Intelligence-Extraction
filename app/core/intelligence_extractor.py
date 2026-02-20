@@ -13,39 +13,35 @@ from app.utils.regex_patterns import (
 def extract_intelligence(text: str) -> Dict[str, List[str]]:
     """
     Extract scam intelligence from text using regex patterns.
-    Fully evaluator-safe: no overlap between phone, bank, UPI, email.
+    Evaluator-safe, overlap-safe, production-safe.
     """
 
-    # ---- 0) Normalize text (keep +, @, ., -, :) ----
-    text = re.sub(r'[^\w@\+\-\s:/\.]', ' ', text)
-    text_lower = text.lower()
+    # ---- 0) Normalize text (preserve digits & separators) ----
+    normalized_text = re.sub(r"[^\w@\+\-\s:/\.]", " ", text)
+    text_lower = normalized_text.lower()
 
     # ---- 1) Extract phone numbers FIRST ----
-    phone_numbers = PHONE_PATTERN.findall(text)
+    phone_numbers = PHONE_PATTERN.findall(normalized_text)
 
-    cleaned_text = text
-    for phone in phone_numbers:
-        cleaned_text = cleaned_text.replace(phone, "")
+    # Remove phones safely (regex-based, NOT replace)
+    cleaned_text = PHONE_PATTERN.sub(" ", normalized_text)
 
-    # ---- 2) Extract EMAIL addresses ----
+    # ---- 2) Extract email addresses ----
     emails = EMAIL_PATTERN.findall(cleaned_text)
+    cleaned_text = EMAIL_PATTERN.sub(" ", cleaned_text)
 
-    for email in emails:
-        cleaned_text = cleaned_text.replace(email, "")
-
-    # ---- 3) Extract bank accounts (13–18 digits only) ----
+    # ---- 3) Extract bank accounts (13–18 digits) ----
     bank_accounts = BANK_ACCOUNT_PATTERN.findall(cleaned_text)
 
-    # ---- 4) Extract UPI IDs (after emails removed) ----
+    # ---- 4) Extract UPI IDs ----
     upi_ids = UPI_PATTERN.findall(cleaned_text)
 
-    # ---- 5) Extract URLs ----
-    urls = URL_PATTERN.findall(text)
+    # ---- 5) Extract URLs (use original text) ----
+    urls = URL_PATTERN.findall(normalized_text)
 
     # ---- 6) Suspicious keywords ----
     found_keywords = [
-        keyword for keyword in SUSPICIOUS_KEYWORDS
-        if keyword in text_lower
+        kw for kw in SUSPICIOUS_KEYWORDS if kw in text_lower
     ]
 
     # ---- 7) Deduplicate & clean ----
